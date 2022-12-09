@@ -1,6 +1,6 @@
 #!/bin/bash
-# Centos 7x64
-# Version: 2020
+# unbuntu 20.04
+# Version: 2022
 ln -fs /usr/share/zoneinfo/Asia/Manila /etc/localtime
 #sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config 
 
