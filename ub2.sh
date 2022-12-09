@@ -27,7 +27,7 @@ PASS = ''
 BUFLEN = 4096 * 4
 TIMEOUT = 60
 DEFAULT_HOST = '127.0.0.1:143'
-RESPONSE = 'HTTP/1.1 101 Criz Romero \r\n\r\n'
+RESPONSE = 'HTTP/1.1 101 Switching Protocol \r\n\r\n'
 
 
 class Server(threading.Thread):
