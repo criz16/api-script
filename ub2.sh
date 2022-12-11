@@ -6,8 +6,6 @@ ln -fs /usr/share/zoneinfo/Asia/Manila /etc/localtime
 
 vps_ip=$(curl -s https://api.ipify.org)
 #change this according to your SSH Account details
-USER="tweagle"
-PASS="wasalack22"
 
 #Install Updates
 apt-get update 
@@ -326,7 +324,8 @@ sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=143/g' /etc/default/dropbear
 echo "/bin/false" >> /etc/shells
 service ssh restart
 service dropbear restart
-
+USER="tweagle"
+PASS="wasalack22"
 #Installing Stunnel
 apt-get -y install stunnel4
 cat <<EOF >/etc/stunnel/stunnel.pem
