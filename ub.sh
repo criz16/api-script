@@ -324,7 +324,7 @@ sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=143/g' /etc/default/dropbear
 echo "/bin/false" >> /etc/shells
 service ssh restart
 service dropbear restart
-USER="tweagle"
+USER="hardworkvpn"
 PASS="wasalack22"
 #Installing Stunnel
 apt-get -y install stunnel4
