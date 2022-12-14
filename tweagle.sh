@@ -412,6 +412,7 @@ cd
 chmod 600 /etc/stunnel/stunnel.pem
 echo "/sbin/nologin" >> /etc/shells
 printf "\nAllowUsers root" >> /etc/ssh/sshd_config
+echo "0 5 * * * root /sbin/reboot" > /etc/cron.d/reboot
 
 useradd $USER
 echo "$USER:$PASS" | chpasswd
