@@ -68,11 +68,7 @@ http_access allow all
 http_port 0.0.0.0:3128
 http_port 0.0.0.0:8080"| sudo tee /etc/squid/squid.conf &> /dev/null;
 
-# SSH Configuration
-cd
-sed -i '/Port 22/a Port 143' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port  144' /etc/ssh/sshd_config
-sed -i 's/Port 22/Port  22/g' /etc/ssh/sshd_config
+
 
 # Install Dropbear
 apt-get -y install dropbear
@@ -331,7 +327,6 @@ systemctl enable rc-local.service
 service ssh restart
 service dropbear restart
 systemctl enable dropbear
-service fail2ban restart
 service stunnel4 restart
 systemctl enable stunnel4
 systemctl openvpn restart
