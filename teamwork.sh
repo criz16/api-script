@@ -11,33 +11,17 @@ cd
 
 # install wget and curl
 apt-get update; apt-get -y install wget curl;
-apt-get install net-tools python screen -y
+apt-get install net-tools screen -y
 
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Manila /etc/localtime
 
+# Local Configuration
+sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
+service ssh restart
+
 vps_ip=$(curl -s https://api.ipify.org)
-#change this according to your SSH Account details
-USER="teamworkvpn"
-PASS="wasalack22"
 
-
-cat << XYZZY > /etc/systemd/system/rc-local.service
-[Unit]
- Description=/etc/rc.local Compatibility
- ConditionPathExists=/etc/rc.local
-
-[Service]
- Type=forking
- ExecStart=/bin/bash /etc/rc.local
- TimeoutSec=0
- StandardOutput=tty
- RemainAfterExit=yes
- SysVStartPriority=99
-
-[Install]
- WantedBy=multi-user.target
-XYZZY
 
 # Installing and Configuring Squid Proxy W/ Multi Ports
 clear
@@ -84,14 +68,27 @@ http_access allow all
 http_port 0.0.0.0:3128
 http_port 0.0.0.0:8080"| sudo tee /etc/squid/squid.conf &> /dev/null;
 
-# install dropbear
+# SSH Configuration
+cd
+sed -i '/Port 22/a Port 143' /etc/ssh/sshd_config
+sed -i '/Port 22/a Port  144' /etc/ssh/sshd_config
+sed -i 's/Port 22/Port  22/g' /etc/ssh/sshd_config
+
+# Install Dropbear
 apt-get -y install dropbear
 sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=143/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 555"/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=444/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 441 -p 442"/g' /etc/default/dropbear
 echo "/bin/false" >> /etc/shells
-service ssh restart
-service dropbear restart
+echo "/sbin/nologin" >> /etc/shells
+echo "/usr/sbin/nologin" >> /etc/shells
+
+# Banner
+rm /etc/issue.net
+wget -O /etc/issue.net "https://raw.githubusercontent.com/criz16/cqkvpn/master/banner"
+chmod +x /etc/issue.net
+sed -i 's@#Banner@Banner@g' /etc/ssh/sshd_config
+sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
 
 #Installing Stunnel
 apt-get -y install stunnel4
@@ -150,29 +147,194 @@ EOF
 
 
 cat <<EOF >/etc/stunnel/stunnel.conf
+pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
 client = no
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 [dropbear]
-connect = 127.0.0.1:143
-accept = 443
-[dropbear]
-connect = 127.0.0.1:555
-accept = 4443
+connect = 127.0.0.1:444
+accept = 445
 EOF
-
 sed -i "s/ENABLED=0/ENABLED=1/g" /etc/default/stunnel4
 
-cd
-chmod 600 /etc/stunnel/stunnel.pem
-echo "/sbin/nologin" >> /etc/shells
-printf "\nAllowUsers root" >> /etc/ssh/sshd_config
-echo "0 4 * * * root /sbin/reboot" > /etc/cron.d/reboot
-useradd $USER
+# SSH User Login
+USER="teamwork"
+PASS="wasalack22"
+useradd $USER /sbin/nologin
 echo "$USER:$PASS" | chpasswd
-/etc/init.d/stunnel4 restart &> /dev/null
+
+# Setting Up the proper permission
+chmod 600 /etc/stunnel/stunnel.pem
+
+# Setting Up Boot Time
+echo -e "                $GREEN Reboot Services$RESET"
+PS3='Choose Boot Time: '
+options=("5am" "Weekdays" "Monthly" "Quit")
+select opt in "${options[@]}"; do
+case "$opt,$REPLY" in
+5am,*|*,5am) 
+echo "";
+echo "0 5 * * * root /sbin/reboot" > /etc/cron.d/reboot
+echo "";
+echo -e "                $GREEN 1) Every 5:00 am Your VPS will reboot$RESET";
+break ;;
+Weekdays,*|*,Weekdays) 
+echo "";
+echo "0 4 * * 0 root /sbin/reboot" > /etc/cron.d/reboot
+echo "";
+echo -e "                $GREEN 2) Every 4:00 am Sunday Your VPS will reboot$RESET";
+break ;;
+Monthly,*|*,Monthly) 
+echo "";
+echo "0 0 1 * * root /sbin/reboot" > /etc/cron.d/reboot
+echo "";
+echo -e "                $GREEN 3) Every 12mn Next Month Your VPS will reboot$RESET";
+break ;;
+Quit,*|*,Quit)
+echo -e "                $RED   Installation Cancelled! $RESET";
+echo -e "                $RED   Rebuild your vps and correct the setup.$RESET";
+exit;
+break ;; *)
+echo -e "                $RED   Invalid: Just choose what you want$RESET";
+esac
+done
+
+# tweaks
+echo '' > /etc/sysctl.conf &> /dev/null
+echo "#IPV4
+net.ipv4.ip_forward = 1
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 1200
+net.ipv4.ip_local_port_range = 10000 65000
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_max_tw_buckets = 5000
+net.ipv4.tcp_mem = 25600 51200 102400
+net.ipv4.tcp_rmem = 4096 87380 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.ipv4.tcp_mtu_probing = 1
+
+#Net Core
+net.core.rmem_default = 10000000
+net.core.wmem_default = 10000000
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.core.netdev_max_backlog = 250000
+net.core.somaxconn = 4096
+
+#Kernel
+kernel.sysrq = 0
+kernel.core_uses_pid = 1
+kernel.msgmnb = 65536
+kernel.msgmax = 65536
+kernel.shmmax = 68719476736
+kernel.shmall = 4294967296
+fs.file-max = 51200
+
+net.ipv4.tcp_tw_recycle = 0
+#net.ipv4.tcp_fastopen = 3
+net.ipv4.tcp_congestion_control = hybla
+
+#IPV6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1"| sudo tee /etc/sysctl.conf
+
+sysctl -p
+
+echo ""
+echo ""
+echo ""
+echo "            Ethernet Type"
+ip route | grep default
+eth=""
+
+echo ""
+echo "Ethernet:"
+read eth
+
+
+echo '' > /etc/iptables.up.rules
+echo "#
+*nat
+:PREROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o $eth -j MASQUERADE
+-A POSTROUTING -o tun0 -j MASQUERADE
+-A POSTROUTING -s 10.8.0.0/24 -o $eth -j MASQUERADE
+COMMIT
+
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:fail2ban-ssh - [0:0]
+-A FORWARD -i $eth -o tun0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -i tun0 -o $eth -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 53 -j ACCEPT
+-A INPUT -p tcp --dport 22  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 143  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 144  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 442  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 443  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 444  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 445  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 110  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 1147  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 8443  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 8444  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 3128  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 8080  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 8888  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 8118  -m state --state NEW -j ACCEPT
+COMMIT
+
+*raw
+:PREROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+COMMIT
+
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+COMMIT
+
+"| sudo tee /etc/iptables.up.rules
+
+echo '' > /etc/rc.local
+echo "#!/bin/sh
+/sbin/ifconfig $eth txqueuelen 10000
+iptables-restore < /etc/iptables.up.rules
+echo 1 > /proc/sys/net/ipv4/ip_forward
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+echo "nameserver 1.1.1.1" > /etc/resolv.conf
+echo "nameserver 1.0.0.1" >> /etc/resolv.conf
+#screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300
+
+exit 0"| sudo tee /etc/rc.local
+chmod +x /etc/rc.local
+/etc/rc.local
+
+# Restart Services
+systemctl restart rc-local.service
+systemctl enable rc-local.service
+service ssh restart
+service dropbear restart
+systemctl enable dropbear
+service fail2ban restart
+service stunnel4 restart
+systemctl enable stunnel4
+systemctl openvpn restart
 
 clear
 netstat -tunlp
