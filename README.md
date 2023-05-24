@@ -7,6 +7,6 @@ wget https://raw.githubusercontent.com/cqkvpn/api-script/main/hardworkvpn.sh && 
 
 
 ##### TEAMWORK VPN #####
-wget https://raw.githubusercontent.com/cqkvpn/api-script/main/teamwork.sh && bash teamwork.sh
+wget https://raw.githubusercontent.com/criz16/api-script/main/teamwork.sh && bash teamwork.sh
 
 
