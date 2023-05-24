@@ -11,80 +11,330 @@ cd
 
 # install wget and curl
 apt-get update; apt-get -y install wget curl;
-apt-get install net-tools screen -y
+apt-get install net-tools screen python -y
 
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Manila /etc/localtime
 
-# Local Configuration
-sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
-service ssh restart
-
 vps_ip=$(curl -s https://api.ipify.org)
+#change this according to your SSH Account details
+USER="teamworkvpn"
+PASS="wasalack22"
+
+###Instaling Python
+/bin/cat <<"EOM" >/usr/local/sbin/socks.py
+import socket, threading, thread, select, signal, sys, time, getopt
+
+# CONFIG
+LISTENING_ADDR = '0.0.0.0'
+LISTENING_PORT = 8989
+
+PASS = ''
+
+# CONST
+BUFLEN = 4096 * 4
+TIMEOUT = 60
+DEFAULT_HOST = '127.0.0.1:222'
+RESPONSE = 'HTTP/1.1 101 Switching Protocol \r\n\r\n'
 
 
-# Installing and Configuring Squid Proxy W/ Multi Ports
-clear
-echo -e "                $GREEN Installing Squid$RESET"
-apt-get install squid3 -y &> /dev/null;
+class Server(threading.Thread):
+    def __init__(self, host, port):
+        threading.Thread.__init__(self)
+        self.running = False
+        self.host = host
+        self.port = port
+        self.threads = []
+        self.threadsLock = threading.Lock()
+        self.logLock = threading.Lock()
 
-echo '' > /etc/squid/squid.conf
-echo "acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
-acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
-acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
-acl localnet src fc00::/7       # RFC 4193 local private network range
-acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
-acl SSL_ports port 1194     	# OpenVPN
-acl Safe_ports port 1194    	# OpenVPN
-acl SSL_ports port 443
-acl SSL_ports port 992
-acl SSL_ports port 995
-acl SSL_ports port 5555
-acl SSL_ports port 80
-acl Safe_ports port 80		# http
-acl Safe_ports port 21		# ftp
-acl Safe_ports port 443		# https
-acl Safe_ports port 70		# gopher
-acl Safe_ports port 210		# wais
-acl Safe_ports port 1025-65535	# unregistered ports
-acl Safe_ports port 280		# http-mgmt
-acl Safe_ports port 488		# gss-http
-acl Safe_ports port 591		# filemaker
-acl Safe_ports port 777		# multiling http
-acl Safe_ports port 992		# mail
-acl Safe_ports port 995		# mail
-acl CONNECT method CONNECT
-acl vpnservers dst $MYIP
-acl vpnservers dst 127.0.0.1
-http_access deny !Safe_ports
-http_access deny CONNECT !SSL_ports
-http_access allow localhost manager
-http_access allow localnet
-http_access allow localhost
-http_access allow vpnservers
-http_access deny !vpnservers
-http_access deny manager
-http_access allow all
-http_port 0.0.0.0:3128
-http_port 0.0.0.0:8080"| sudo tee /etc/squid/squid.conf &> /dev/null;
+    def run(self):
+        self.soc = socket.socket(socket.AF_INET)
+        self.soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.soc.settimeout(2)
+        self.soc.bind((self.host, self.port))
+        self.soc.listen(0)
+        self.running = True
+
+        try:
+            while self.running:
+                try:
+                    c, addr = self.soc.accept()
+                    c.setblocking(1)
+                except socket.timeout:
+                    continue
+
+                conn = ConnectionHandler(c, self, addr)
+                conn.start()
+                self.addConn(conn)
+        finally:
+            self.running = False
+            self.soc.close()
+
+    def printLog(self, log):
+        self.logLock.acquire()
+        print log
+        self.logLock.release()
+
+    def addConn(self, conn):
+        try:
+            self.threadsLock.acquire()
+            if self.running:
+                self.threads.append(conn)
+        finally:
+            self.threadsLock.release()
+
+    def removeConn(self, conn):
+        try:
+            self.threadsLock.acquire()
+            self.threads.remove(conn)
+        finally:
+            self.threadsLock.release()
+
+    def close(self):
+        try:
+            self.running = False
+            self.threadsLock.acquire()
+
+            threads = list(self.threads)
+            for c in threads:
+                c.close()
+        finally:
+            self.threadsLock.release()
 
 
+class ConnectionHandler(threading.Thread):
+    def __init__(self, socClient, server, addr):
+        threading.Thread.__init__(self)
+        self.clientClosed = False
+        self.targetClosed = True
+        self.client = socClient
+        self.client_buffer = ''
+        self.server = server
+        self.log = 'Connection: ' + str(addr)
 
-# Install Dropbear
+    def close(self):
+        try:
+            if not self.clientClosed:
+                self.client.shutdown(socket.SHUT_RDWR)
+                self.client.close()
+        except:
+            pass
+        finally:
+            self.clientClosed = True
+
+        try:
+            if not self.targetClosed:
+                self.target.shutdown(socket.SHUT_RDWR)
+                self.target.close()
+        except:
+            pass
+        finally:
+            self.targetClosed = True
+
+    def run(self):
+        try:
+            self.client_buffer = self.client.recv(BUFLEN)
+
+            hostPort = self.findHeader(self.client_buffer, 'X-Real-Host')
+
+            if hostPort == '':
+                hostPort = DEFAULT_HOST
+
+            split = self.findHeader(self.client_buffer, 'X-Split')
+
+            if split != '':
+                self.client.recv(BUFLEN)
+
+            if hostPort != '':
+                passwd = self.findHeader(self.client_buffer, 'X-Pass')
+				
+                if len(PASS) != 0 and passwd == PASS:
+                    self.method_CONNECT(hostPort)
+                elif len(PASS) != 0 and passwd != PASS:
+                    self.client.send('HTTP/1.1 400 WrongPass!\r\n\r\n')
+                elif hostPort.startswith('127.0.0.1') or hostPort.startswith('localhost'):
+                    self.method_CONNECT(hostPort)
+                else:
+                    self.client.send('HTTP/1.1 403 Forbidden!\r\n\r\n')
+            else:
+                print '- No X-Real-Host!'
+                self.client.send('HTTP/1.1 400 NoXRealHost!\r\n\r\n')
+
+        except Exception as e:
+            self.log += ' - error: ' + e.strerror
+            self.server.printLog(self.log)
+	    pass
+        finally:
+            self.close()
+            self.server.removeConn(self)
+
+    def findHeader(self, head, header):
+        aux = head.find(header + ': ')
+
+        if aux == -1:
+            return ''
+
+        aux = head.find(':', aux)
+        head = head[aux+2:]
+        aux = head.find('\r\n')
+
+        if aux == -1:
+            return ''
+
+        return head[:aux];
+
+    def connect_target(self, host):
+        i = host.find(':')
+        if i != -1:
+            port = int(host[i+1:])
+            host = host[:i]
+        else:
+            if self.method=='CONNECT':
+                port = 443
+            else:
+                port = 80
+                port = 8080
+                port = 8799
+                port = 3128
+
+        (soc_family, soc_type, proto, _, address) = socket.getaddrinfo(host, port)[0]
+
+        self.target = socket.socket(soc_family, soc_type, proto)
+        self.targetClosed = False
+        self.target.connect(address)
+
+    def method_CONNECT(self, path):
+        self.log += ' - CONNECT ' + path
+
+        self.connect_target(path)
+        self.client.sendall(RESPONSE)
+        self.client_buffer = ''
+
+        self.server.printLog(self.log)
+        self.doCONNECT()
+
+    def doCONNECT(self):
+        socs = [self.client, self.target]
+        count = 0
+        error = False
+        while True:
+            count += 1
+            (recv, _, err) = select.select(socs, [], socs, 3)
+            if err:
+                error = True
+            if recv:
+                for in_ in recv:
+		    try:
+                        data = in_.recv(BUFLEN)
+                        if data:
+			    if in_ is self.target:
+				self.client.send(data)
+                            else:
+                                while data:
+                                    byte = self.target.send(data)
+                                    data = data[byte:]
+
+                            count = 0
+			else:
+			    break
+		    except:
+                        error = True
+                        break
+            if count == TIMEOUT:
+                error = True
+
+            if error:
+                break
+
+
+def print_usage():
+    print 'Usage: proxy.py -p <port>'
+    print '       proxy.py -b <bindAddr> -p <port>'
+    print '       proxy.py -b 0.0.0.0 -p 80'
+
+def parse_args(argv):
+    global LISTENING_ADDR
+    global LISTENING_PORT
+
+    try:
+        opts, args = getopt.getopt(argv,"hb:p:",["bind=","port="])
+    except getopt.GetoptError:
+        print_usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print_usage()
+            sys.exit()
+        elif opt in ("-b", "--bind"):
+            LISTENING_ADDR = arg
+        elif opt in ("-p", "--port"):
+            LISTENING_PORT = int(arg)
+
+
+def main(host=LISTENING_ADDR, port=LISTENING_PORT):
+
+    print "\n:-------PythonProxy-------:\n"
+    print "Listening addr: " + LISTENING_ADDR
+    print "Listening port: " + str(LISTENING_PORT) + "\n"
+    print ":-------------------------:\n"
+
+    server = Server(LISTENING_ADDR, LISTENING_PORT)
+    server.start()
+
+    while True:
+        try:
+            time.sleep(2)
+        except KeyboardInterrupt:
+            print 'Stopping...'
+            server.close()
+            break
+
+if __name__ == '__main__':
+    parse_args(sys.argv[1:])
+    main()
+EOM
+chmod +x /usr/local/sbin/socks.py
+screen -dmS socks python /usr/local/sbin/socks.py
+
+cat << XYZZY > /etc/systemd/system/rc-local.service
+[Unit]
+ Description=/etc/rc.local Compatibility
+ ConditionPathExists=/etc/rc.local
+
+[Service]
+ Type=forking
+ ExecStart=/bin/bash /etc/rc.local
+ TimeoutSec=0
+ StandardOutput=tty
+ RemainAfterExit=yes
+ SysVStartPriority=99
+
+[Install]
+ WantedBy=multi-user.target
+XYZZY
+chmod +x /etc/systemd/system/rc-local.service
+
+
+cat << EOF >/etc/rc.local
+#!/bin/sh -e
+/sbin/sysctl -p
+sysctl -p
+screen -dmS socks python /usr/local/sbin/socks.py
+exit 0
+EOF
+chmod +x /etc/rc.local
+systemctl enable rc-local
+systemctl start rc-local.service
+
+# install dropbear
 apt-get -y install dropbear
 sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=444/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 441 -p 442"/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=222/g' /etc/default/dropbear
+#sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 222"/g' /etc/default/dropbear
 echo "/bin/false" >> /etc/shells
-echo "/sbin/nologin" >> /etc/shells
-echo "/usr/sbin/nologin" >> /etc/shells
-
-# Banner
-rm /etc/issue.net
-wget -O /etc/issue.net "https://raw.githubusercontent.com/criz16/cqkvpn/master/banner"
-chmod +x /etc/issue.net
-sed -i 's@#Banner@Banner@g' /etc/ssh/sshd_config
-sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
+service ssh restart
+service dropbear restart
 
 #Installing Stunnel
 apt-get -y install stunnel4
@@ -143,193 +393,38 @@ EOF
 
 
 cat <<EOF >/etc/stunnel/stunnel.conf
-pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
 client = no
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
-[dropbear]
-connect = 127.0.0.1:444
-accept = 445
+[sts]
+connect = 127.0.0.1:222
+accept = 443
 EOF
-sed -i "s/ENABLED=0/ENABLED=1/g" /etc/default/stunnel4
 
-# SSH User Login
-USER="teamwork"
-PASS="wasalack22"
-useradd $USER /sbin/nologin
+cd /etc/default && rm stunnel4
+cat <<EOF >stunnel4
+echo 'ENABLED=1
+FILES="/etc/stunnel/*.conf"
+OPTIONS=""
+PPP_RESTART=0
+RLIMITS=""'
+EOF
+
+chmod 755 stunnel4
+update-rc.d stunnel4 defaults
+systemctl enable stunnel4
+systemctl restart stunnel4
+
+cd
+chmod 600 /etc/stunnel/stunnel.pem
+echo "/sbin/nologin" >> /etc/shells
+printf "\nAllowUsers root" >> /etc/ssh/sshd_config
+echo "0 4 * * * root /sbin/reboot" > /etc/cron.d/reboot
+useradd $USER
 echo "$USER:$PASS" | chpasswd
 
-# Setting Up the proper permission
-chmod 600 /etc/stunnel/stunnel.pem
-
-# Setting Up Boot Time
-echo -e "                $GREEN Reboot Services$RESET"
-PS3='Choose Boot Time: '
-options=("5am" "Weekdays" "Monthly" "Quit")
-select opt in "${options[@]}"; do
-case "$opt,$REPLY" in
-5am,*|*,5am) 
-echo "";
-echo "0 5 * * * root /sbin/reboot" > /etc/cron.d/reboot
-echo "";
-echo -e "                $GREEN 1) Every 5:00 am Your VPS will reboot$RESET";
-break ;;
-Weekdays,*|*,Weekdays) 
-echo "";
-echo "0 4 * * 0 root /sbin/reboot" > /etc/cron.d/reboot
-echo "";
-echo -e "                $GREEN 2) Every 4:00 am Sunday Your VPS will reboot$RESET";
-break ;;
-Monthly,*|*,Monthly) 
-echo "";
-echo "0 0 1 * * root /sbin/reboot" > /etc/cron.d/reboot
-echo "";
-echo -e "                $GREEN 3) Every 12mn Next Month Your VPS will reboot$RESET";
-break ;;
-Quit,*|*,Quit)
-echo -e "                $RED   Installation Cancelled! $RESET";
-echo -e "                $RED   Rebuild your vps and correct the setup.$RESET";
-exit;
-break ;; *)
-echo -e "                $RED   Invalid: Just choose what you want$RESET";
-esac
-done
-
-# tweaks
-echo '' > /etc/sysctl.conf &> /dev/null
-echo "#IPV4
-net.ipv4.ip_forward = 1
-net.ipv4.conf.default.rp_filter = 1
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.default.accept_source_route = 0
-net.ipv4.tcp_syncookies = 1
-net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_fin_timeout = 30
-net.ipv4.tcp_keepalive_time = 1200
-net.ipv4.ip_local_port_range = 10000 65000
-net.ipv4.tcp_max_syn_backlog = 8192
-net.ipv4.tcp_max_tw_buckets = 5000
-net.ipv4.tcp_mem = 25600 51200 102400
-net.ipv4.tcp_rmem = 4096 87380 67108864
-net.ipv4.tcp_wmem = 4096 65536 67108864
-net.ipv4.tcp_mtu_probing = 1
-
-#Net Core
-net.core.rmem_default = 10000000
-net.core.wmem_default = 10000000
-net.core.rmem_max = 67108864
-net.core.wmem_max = 67108864
-net.core.netdev_max_backlog = 250000
-net.core.somaxconn = 4096
-
-#Kernel
-kernel.sysrq = 0
-kernel.core_uses_pid = 1
-kernel.msgmnb = 65536
-kernel.msgmax = 65536
-kernel.shmmax = 68719476736
-kernel.shmall = 4294967296
-fs.file-max = 51200
-
-net.ipv4.tcp_tw_recycle = 0
-#net.ipv4.tcp_fastopen = 3
-net.ipv4.tcp_congestion_control = hybla
-
-#IPV6
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1"| sudo tee /etc/sysctl.conf
-
-sysctl -p
-
-echo ""
-echo ""
-echo ""
-echo "            Ethernet Type"
-ip route | grep default
-eth=""
-
-echo ""
-echo "Ethernet:"
-read eth
-
-
-echo '' > /etc/iptables.up.rules
-echo "#
-*nat
-:PREROUTING ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
--A POSTROUTING -o $eth -j MASQUERADE
--A POSTROUTING -o tun0 -j MASQUERADE
--A POSTROUTING -s 10.8.0.0/24 -o $eth -j MASQUERADE
-COMMIT
-
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:fail2ban-ssh - [0:0]
--A FORWARD -i $eth -o tun0 -m state --state RELATED,ESTABLISHED -j ACCEPT
--A FORWARD -i tun0 -o $eth -j ACCEPT
--A INPUT -p tcp -m tcp --dport 53 -j ACCEPT
--A INPUT -p tcp --dport 22  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 143  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 144  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 442  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 443  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 444  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 445  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 110  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 1147  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8443  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8444  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 3128  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8080  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8888  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8118  -m state --state NEW -j ACCEPT
-COMMIT
-
-*raw
-:PREROUTING ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-COMMIT
-
-*mangle
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
-COMMIT
-
-"| sudo tee /etc/iptables.up.rules
-
-echo '' > /etc/rc.local
-echo "#!/bin/sh
-/sbin/ifconfig $eth txqueuelen 10000
-iptables-restore < /etc/iptables.up.rules
-echo 1 > /proc/sys/net/ipv4/ip_forward
-echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-echo "nameserver 1.1.1.1" > /etc/resolv.conf
-echo "nameserver 1.0.0.1" >> /etc/resolv.conf
-#screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300
-
-exit 0"| sudo tee /etc/rc.local
-chmod +x /etc/rc.local
-/etc/rc.local
-
-# Restart Services
-systemctl restart rc-local.service
-systemctl enable rc-local.service
-service ssh restart
-service dropbear restart
-systemctl enable dropbear
-service stunnel4 restart
-systemctl enable stunnel4
-systemctl openvpn restart
 
 clear
 netstat -tunlp
@@ -340,7 +435,6 @@ cat /dev/null > ~/.bash_history && history -c && history -w
   echo "Server will secure this server and reboot after 20 seconds"
   sleep 20
   /sbin/reboot
-
 
 
 
