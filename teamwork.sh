@@ -1,534 +1,323 @@
 #!/bin/bash
-# Ubuntu16 v.10a
-#
-# Please modify to your needs
-dbhost='143.42.31.35';
-dbuser='admin_teamwork';
-dbpass='jYWJ9l9nb9yp';
-dbname='admin_teamwork';
-# certificates
-cacert='-----BEGIN CERTIFICATE-----
-MIICMTCCAZqgAwIBAgIUAaQBApMS2dYBqYPcA3Pa7cjjw7cwDQYJKoZIhvcNAQEL
-BQAwDzENMAsGA1UEAwwES29iWjAeFw0yMDA3MjIyMjIzMzNaFw0zMDA3MjAyMjIz
-MzNaMA8xDTALBgNVBAMMBEtvYlowgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGB
-AMF46UVi2O5pZpddOPyzU2EyIrr8NrpXqs8BlYhUjxOcCrkMjFu2G9hk7QIZ4qO0
-GWVZpPhYk5qWk+LxCsryrSoe0a5HaqIye8BFJmXV0k+O/3e6k06UGNii3gxBWQpF
-7r/2CyQLus9OSpQPYszByBvtkwiBAo/V98jdpm+EVu6tAgMBAAGjgYkwgYYwHQYD
-VR0OBBYEFGRJMm/+ZmLxV027kahdvSY+UaTSMEoGA1UdIwRDMEGAFGRJMm/+ZmLx
-V027kahdvSY+UaTSoROkETAPMQ0wCwYDVQQDDARLb2JaghQBpAECkxLZ1gGpg9wD
-c9rtyOPDtzAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsF
-AAOBgQC0f8wb5hyEOEEX64l8QCNpyd/WLjoeE5bE+xnIcKE+XpEoDRZwugLoyQdc
-HKa3aRHNqKpR7H696XJReo4+pocDeyj7rATbO5dZmSMNmMzbsjQeXux0XjwmZIHu
-eDKMefDi0ZfiZmnU2njmTncyZKxv18Ikjws0Myc8PtAxy2qdcA==
------END CERTIFICATE-----';
-servercert='Certificate:
-    Data:
-        Version: 3 (0x2)
-        Serial Number:
-            40:26:da:91:18:2b:77:9c:85:6a:0c:bb:ca:90:53:fe
-        Signature Algorithm: sha256WithRSAEncryption
-        Issuer: CN=KobZ
-        Validity
-            Not Before: Jul 22 22:23:55 2020 GMT
-            Not After : Jul 20 22:23:55 2030 GMT
-        Subject: CN=server
-        Subject Public Key Info:
-            Public Key Algorithm: rsaEncryption
-                RSA Public-Key: (1024 bit)
-                Modulus:
-                    00:ce:35:23:d8:5d:9f:b6:9b:cb:6a:89:e1:90:af:
-                    42:df:5f:f8:bd:ad:a7:78:9a:ca:20:f0:3d:5b:d6:
-                    c9:ef:4c:4a:99:96:c3:38:fd:59:b4:d7:65:ed:d4:
-                    a7:fa:ab:03:e2:be:88:2f:ca:fc:90:dd:b0:b7:bc:
-                    23:cb:83:ac:36:e2:01:57:69:64:b8:e1:9e:51:f0:
-                    a6:9d:13:d9:92:6b:4d:04:a6:10:64:a3:3f:6b:ff:
-                    fe:32:ac:91:63:c2:71:24:be:9e:76:4f:87:cc:3a:
-                    03:a1:9e:48:3f:11:92:33:3b:19:16:9c:d0:5d:16:
-                    ee:c1:42:67:99:47:66:67:67
-                Exponent: 65537 (0x10001)
-        X509v3 extensions:
-            X509v3 Basic Constraints: 
-                CA:FALSE
-            X509v3 Subject Key Identifier: 
-                6B:08:C0:64:10:71:A8:32:7F:0B:FE:1E:98:1F:BD:72:74:0F:C8:66
-            X509v3 Authority Key Identifier: 
-                keyid:64:49:32:6F:FE:66:62:F1:57:4D:BB:91:A8:5D:BD:26:3E:51:A4:D2
-                DirName:/CN=KobZ
-                serial:01:A4:01:02:93:12:D9:D6:01:A9:83:DC:03:73:DA:ED:C8:E3:C3:B7
+# UNBUNTU 20X64
+# Version: 2023
 
-            X509v3 Extended Key Usage: 
-                TLS Web Server Authentication
-            X509v3 Key Usage: 
-                Digital Signature, Key Encipherment
-            X509v3 Subject Alternative Name: 
-                DNS:server
-    Signature Algorithm: sha256WithRSAEncryption
-         a1:3e:ac:83:0b:e5:5d:ca:36:b7:d0:ab:d0:d9:73:66:d1:62:
-         88:ce:3d:47:9e:08:0b:a0:5b:51:13:fc:7e:d7:6e:17:0e:bd:
-         f5:d9:a9:d9:06:78:52:88:5a:e5:df:d3:32:22:4a:4b:08:6f:
-         b1:22:80:4f:19:d1:5f:9d:b6:5a:17:f7:ad:70:a9:04:00:ff:
-         fe:84:aa:e1:cb:0e:74:c0:1a:75:0b:3e:98:90:1d:22:ba:a4:
-         7a:26:65:7d:d1:3b:5c:45:a1:77:22:ed:b6:6b:18:a3:c4:ee:
-         3e:06:bb:0b:ec:12:ac:16:a5:50:b3:ed:46:43:87:72:fd:75:
-         8c:38
------BEGIN CERTIFICATE-----
-MIICVDCCAb2gAwIBAgIQQCbakRgrd5yFagy7ypBT/jANBgkqhkiG9w0BAQsFADAP
-MQ0wCwYDVQQDDARLb2JaMB4XDTIwMDcyMjIyMjM1NVoXDTMwMDcyMDIyMjM1NVow
-ETEPMA0GA1UEAwwGc2VydmVyMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDO
-NSPYXZ+2m8tqieGQr0LfX/i9rad4msog8D1b1snvTEqZlsM4/Vm012Xt1Kf6qwPi
-vogvyvyQ3bC3vCPLg6w24gFXaWS44Z5R8KadE9mSa00EphBkoz9r//4yrJFjwnEk
-vp52T4fMOgOhnkg/EZIzOxkWnNBdFu7BQmeZR2ZnZwIDAQABo4GuMIGrMAkGA1Ud
-EwQCMAAwHQYDVR0OBBYEFGsIwGQQcagyfwv+HpgfvXJ0D8hmMEoGA1UdIwRDMEGA
-FGRJMm/+ZmLxV027kahdvSY+UaTSoROkETAPMQ0wCwYDVQQDDARLb2JaghQBpAEC
-kxLZ1gGpg9wDc9rtyOPDtzATBgNVHSUEDDAKBggrBgEFBQcDATALBgNVHQ8EBAMC
-BaAwEQYDVR0RBAowCIIGc2VydmVyMA0GCSqGSIb3DQEBCwUAA4GBAKE+rIML5V3K
-NrfQq9DZc2bRYojOPUeeCAugW1ET/H7XbhcOvfXZqdkGeFKIWuXf0zIiSksIb7Ei
-gE8Z0V+dtloX961wqQQA//6EquHLDnTAGnULPpiQHSK6pHomZX3RO1xFoXci7bZr
-GKPE7j4GuwvsEqwWpVCz7UZDh3L9dYw4
------END CERTIFICATE-----';
-serverkey='-----BEGIN PRIVATE KEY-----
-MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAM41I9hdn7aby2qJ
-4ZCvQt9f+L2tp3iayiDwPVvWye9MSpmWwzj9WbTXZe3Up/qrA+K+iC/K/JDdsLe8
-I8uDrDbiAVdpZLjhnlHwpp0T2ZJrTQSmEGSjP2v//jKskWPCcSS+nnZPh8w6A6Ge
-SD8RkjM7GRac0F0W7sFCZ5lHZmdnAgMBAAECgYAFNrC+UresDUpaWjwaxWOidDG8
-0fwu/3Lm3Ewg21BlvX8RXQ94jGdNPDj2h27r1pEVlY2p767tFr3WF2qsRZsACJpI
-qO1BaSbmhek6H++Fw3M4Y/YY+JD+t1eEBjJMa+DR5i8Vx3AE8XOdTXmkl/xK4jaB
-EmLYA7POyK+xaDCeEQJBAPJadiYd3k9OeOaOMIX+StCs9OIMniRz+090AJZK4CMd
-jiOJv0mbRy945D/TkcqoFhhScrke9qhgZbgFj11VbDkCQQDZ0aKBPiZdvDMjx8WE
-y7jaltEDINTCxzmjEBZSeqNr14/2PG0X4GkBL6AAOLjEYgXiIvwfpoYE6IIWl3re
-ebCfAkAHxPimrixzVGux0HsjwIw7dl//YzIqrwEugeSG7O2Ukpz87KySOoUks3Z1
-yV2SJqNWskX1Q1Xa/gQkyyDWeCeZAkAbyDBI+ctc8082hhl8WZunTcs08fARM+X3
-FWszc+76J1F2X7iubfIWs6Ndw95VNgd4E2xDATNg1uMYzJNgYvcTAkBoE8o3rKkp
-em2n0WtGh6uXI9IC29tTQGr3jtxLckN/l9KsJ4gabbeKNoes74zdena1tRdfGqUG
-JQbf7qSE3mg2
------END PRIVATE KEY-----';
-dh='-----BEGIN DH PARAMETERS-----
-MIGHAoGBAKqeBUWMYdj6+Z6kPVyQjm5Pc/nhSeczplV0AX/zJ5lL9TXRGNg+q/nK
-tQyaBpmBWAHxHP8j7NmRQaN6rpBkqHOtXJB9FT35xDvnAAaMxYW5RetBRUW7UnJ3
-s1qQZ6kAUwIgDHzS9ykP9IzKPTbCrMIA/8kHfJ1qMfSDY8slKSVjAgEC
------END DH PARAMETERS-----';
+# go to root
+cd
 
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-MYIP2="s/xxxxxxxxx/$MYIP/g";
+# disable ipv6
+#echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+#sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 
-# Local Time Manila
+# install wget and curl
+apt-get update; apt-get -y install wget curl;
+apt-get install net-tools screen python -y
+
+# set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Manila /etc/localtime
 
-# Local Configuration
-sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
-service ssh restart
-
-
-
-sudo apt-get update
-sudo apt-get install mariadb-client sudo -y
-sudo apt-get install openvpn screen -y
-
-
-# OpenVPN directory
-
-mkdir /etc/openvpn/script
-mkdir /etc/openvpn/log
-mkdir /etc/openvpn/keys
-
-
-cat << EOF > /etc/openvpn/keys/ca.crt
-$cacert
-EOF
-
-cat << EOF > /etc/openvpn/keys/server.crt
-$servercert
-EOF
-
-cat << EOF > /etc/openvpn/keys/server.key
-$serverkey
-EOF
-
-cat << EOF > /etc/openvpn/keys/dh.pem
-$dh
-EOF
-
-cat << EOF > /etc/openvpn/script/config.sh
-#!/bin/bash
-##Dababase Server
-HOST='$dbhost'
-USER='$dbuser'
-PASS='$dbpass'
-DB='$dbname'
-EOF
-
-echo "Type of your Server"
-PS3='Choose or Type a Plan: '
-options=("Premium" "VIP" "Private" "Quit")
-select opt in "${options[@]}"; do
-case "$opt,$REPLY" in
-Premium,*|*,Premium) 
-echo "";
-/bin/cat <<"EOM" >/etc/openvpn/script/login.sh
-#!/bin/bash
-. /etc/openvpn/script/config.sh
-
-
-##PREMIUM##
-PRE="users.user_name='$username' AND users.auth_vpn=md5('$password') AND users.is_validated=1 AND users.is_freeze=0 AND users.is_active=1 AND users.is_ban=0 AND users.duration > 0"
-
-##VIP##
-VIP="users.user_name='$username' AND users.auth_vpn=md5('$password') AND users.is_validated=1 AND users.is_freeze=0 AND users.is_active=1 AND users.is_ban=0 AND users.vip_duration > 0"
-
-##Private##
-PRIV="users.user_name='$username' AND users.auth_vpn=md5('$password') AND users.is_validated=1 AND users.is_freeze=0 AND users.is_active=1 AND users.is_ban=0 AND users.private_duration > 0"
-
-Query="SELECT users.user_name FROM users WHERE $PRE OR $VIP OR $PRIV"
-user_name=`mysql -u $USER -p$PASS -D $DB -h $HOST --skip-column-name -e "$Query"`
-
-[ "$user_name" != '' ] && [ "$user_name" = "$username" ] && echo "user : $username" && echo 'authentication ok.' && exit 0 || echo 'authentication failed.'; exit 1
-
-EOM
-
-echo "";
-echo "1) Premium Selected";
-break ;;
-VIP,*|*,VIP) 
-echo "";
-/bin/cat <<"EOM" >/etc/openvpn/script/login.sh
-#!/bin/bash
-. /etc/openvpn/script/config.sh
-
-
-##VIP##
-VIP="users.user_name='$username' AND users.auth_vpn=md5('$password') AND users.is_validated=1 AND users.is_freeze=0 AND users.is_active=1 AND users.is_ban=0 AND users.vip_duration > 0"
-
-##Private##
-PRIV="users.user_name='$username' AND users.auth_vpn=md5('$password') AND users.is_validated=1 AND users.is_freeze=0 AND users.is_active=1 AND users.is_ban=0 AND users.private_duration > 0"
-
-Query="SELECT users.user_name FROM users WHERE $VIP OR $PRIV"
-user_name=`mysql -u $USER -p$PASS -D $DB -h $HOST --skip-column-name -e "$Query"`
-
-[ "$user_name" != '' ] && [ "$user_name" = "$username" ] && echo "user : $username" && echo 'authentication ok.' && exit 0 || echo 'authentication failed.'; exit 1
-
-EOM
-
-echo "";
-echo "2) VIP Selected";
-break ;;
-Private,*|*,Private) 
-echo "";
-/bin/cat <<"EOM" >/etc/openvpn/script/login.sh
-#!/bin/bash
-. /etc/openvpn/script/config.sh
-
-##Private##
-PRIV="users.user_name='$username' AND users.auth_vpn=md5('$password') AND users.is_validated=1 AND users.is_freeze=0 AND users.is_active=1 AND users.is_ban=0 AND users.private_duration > 0"
-
-Query="SELECT users.user_name FROM users WHERE $PRIV"
-user_name=`mysql -u $USER -p$PASS -D $DB -h $HOST --skip-column-name -e "$Query"`
-
-[ "$user_name" != '' ] && [ "$user_name" = "$username" ] && echo "user : $username" && echo 'authentication ok.' && exit 0 || echo 'authentication failed.'; exit 1
-
-EOM
-echo "";
-echo "3) Private Selected";
-sleep 3s
-break ;;
-Quit,*|*,Quit) echo "Installation Cancelled!!";
-echo -e "\e[1;31mRebuild your vps and correct the process.\e[0m";
-exit;
-break ;; *)
-echo Invalid: Choose a proper Plan;;
-esac
-done
-
-# OpenVPN config
-cat << EOF > /etc/openvpn/server.conf
-dev tun
-port 1194
-proto tcp
-topology subnet
-server 10.20.0.0 255.255.252.0
-ca /etc/openvpn/easy-rsa/keys/ca.crt 
-cert /etc/openvpn/easy-rsa/keys/server.crt 
-key /etc/openvpn/easy-rsa/keys/server.key 
-dh none
-tls-server
-tls-version-min 1.2
-tls-cipher TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256
-cipher none
-ncp-disable
-auth none
-sndbuf 0
-rcvbuf 0
-keepalive 10 120
-persist-key
-persist-tun
-ping-timer-rem
-reneg-sec 0
-user nobody
-group nogroup
-client-to-client
-username-as-common-name
-verify-client-cert none
-script-security 3
-#auth-user-pass-verify "/etc/openvpn/login/auth_vpn" via-env #
-auth-user-pass-verify /etc/openvpn/script/login.sh via-env
-push "persist-key"
-push "persist-tun"
-push "dhcp-option DNS 8.8.8.8"
-push "redirect-gateway def1 bypass-dhcp"
-push "sndbuf 0"
-push "rcvbuf 0"
-#log /etc/openvpn/server/tcpserver.log
-#status /etc/openvpn/server/tcpclient.log
-status /var/www/html/online-users/x2.txt
-status-version 2
-verb 3
-EOF
-
-
-
-# Setting Up Proxy
-PS3='Select you proxy: '
-options=("Squid" "Privoxy" "Quit")
-select opt in "${options[@]}"; do
-case "$opt,$REPLY" in
-Squid,*|*,Squid) 
-echo "";
-# Install Squid3
-cd
-apt-get -y install squid3
-wget -O /etc/squid/squid.conf "https://raw.githubusercontent.com/omayanrey/autoinstaller/master/conf/squid3.conf"
-chmod +x /etc/squid/squid.conf
-sed -i $MYIP2 /etc/squid/squid.conf;
-service squid restart
-systemctl enable squid
-#
-echo "";
-echo "Squid has been set as you proxy";
-break ;;
-Privoxy,*|*,Privoxy) 
-echo "";
-# Install Privoxy
-cd
-apt-get install privoxy -y
-echo '' > /etc/privoxy/config
-echo "user-manual /usr/share/doc/privoxy/user-manual
-confdir /etc/privoxy
-logdir /var/log/privoxy
-filterfile default.filter
-logfile logfile
-listen-address  0.0.0.0:8080
-listen-address  0.0.0.0:3128
-listen-address  0.0.0.0:8888
-toggle  1
-enable-remote-toggle  0
-enable-remote-http-toggle  0
-enable-edit-actions 0
-enforce-blocks 0
-buffer-limit 4096
-enable-proxy-authentication-forwarding 1
-forwarded-connect-retries  1
-accept-intercepted-requests 1
-allow-cgi-request-crunching 1
-split-large-forms 0
-keep-alive-timeout 5
-tolerate-pipelining 1
-socket-timeout 300
-permit-access 0.0.0.0/0 $MYIP"| sudo tee /etc/privoxy/config
-service privoxy restart
-systemctl enable privoxy
-echo "";
-echo "Privoxy has been set as you proxy";
-echo "";
-break ;;
-Quit,*|*,Quit)
-echo "Installation Cancelled";
-echo "Rebuild your vps and correct the setup.";
-exit;
-break ;; *)
-echo -"Invalid: Just choose what you want";
-esac
-done
-
-
-
-# Install BadVPN
-wget -O /usr/bin/badvpn-udpgw "https://raw.githubusercontent.com/omayanrey/autoinstaller/master/conf/badvpn-udpgw64%20(1)"
-sed -i '$ i\screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300' /etc/rc.local
-chmod +x /usr/bin/badvpn-udpgw
-screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300
-
-
-# SSH Configuration
-cd
-sed -i '/Port 22/a Port 143' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port  144' /etc/ssh/sshd_config
-sed -i 's/Port 22/Port  22/g' /etc/ssh/sshd_config
-
-# Install Dropbear
-apt-get -y install dropbear
-sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=444/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 441 -p 442"/g' /etc/default/dropbear
-echo "/bin/false" >> /etc/shells
-echo "/sbin/nologin" >> /etc/shells
-echo "/usr/sbin/nologin" >> /etc/shells
-# Install Fail2Ban
-apt-get -y install fail2ban;
-# Banner
-rm /etc/issue.net
-wget -O /etc/issue.net "https://raw.githubusercontent.com/omayanrey/autoinstaller/master/conf/issue.net"
-chmod +x /etc/issue.net
-sed -i 's@#Banner@Banner@g' /etc/ssh/sshd_config
-sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
-
-# Install DDOS Deflate
-cd
-apt-get -y install dnsutils dsniff unzip
-wget "https://raw.githubusercontent.com/omayanrey/autoinstaller/master/conf/ddos-deflate-master.zip"
-unzip ddos-deflate-master.zip
-cd ddos-deflate-master
-./install.sh
-cd
-rm -rf ddos-deflate-master.zip
-
-## Dropbear Monitoring..
-SNAME1="xxxxxxxxxx";
-SNAME2="";
-echo ""
-echo "Server Name:"
-read SNAME2
-wget -O ssh-online https://raw.githubusercontent.com/omayanrey/script-jualan-ssh-vpn/master/online/ssh-online-ubuntu.sh
-chmod +x ssh-online
-sed -i "s@$SNAME1@$SNAME2@g" ssh-online
-
-
-# Install Stunnel
-apt-get -y install stunnel4
-wget -O /etc/stunnel/stunnel.pem "https://raw.githubusercontent.com/omayanrey/autoinstaller/master/conf/stunnel.pem"
-chmod +x /etc/stunnel/stunnel.pem
-wget -O /etc/stunnel/stunnel.conf "https://raw.githubusercontent.com/omayanrey/autoinstaller/master/conf/stunnel.conf"
-chmod +x /etc/stunnel/stunnel.conf
-sed -i $MYIP2 /etc/stunnel/stunnel.conf
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
-
-# SSH User Login
+vps_ip=$(curl -s https://api.ipify.org)
+#change this according to your SSH Account details
 USER="teamworkvpn"
 PASS="wasalack22"
-useradd $USER /sbin/nologin
-echo "$USER:$PASS" | chpasswd
 
-sudo apt-get install apache2 -y
-# Setting Up the proper permission
-chmod -R 755 /etc/openvpn
-mkdir /var/www/html/status
-touch /var/www/html/status/tcp2.txt
-chmod 777 /var/www/html/status/*
-chmod 600 /etc/stunnel/stunnel.pem
+###Instaling Python
+/bin/cat <<"EOM" >/usr/local/sbin/socks.py
+import socket, threading, thread, select, signal, sys, time, getopt
+
+# CONFIG
+LISTENING_ADDR = '0.0.0.0'
+LISTENING_PORT = 80
+
+PASS = ''
+
+# CONST
+BUFLEN = 4096 * 4
+TIMEOUT = 60
+DEFAULT_HOST = '127.0.0.1:143'
+RESPONSE = 'HTTP/1.1 101 Switching Protocol \r\n\r\n'
 
 
+class Server(threading.Thread):
+    def __init__(self, host, port):
+        threading.Thread.__init__(self)
+        self.running = False
+        self.host = host
+        self.port = port
+        self.threads = []
+        self.threadsLock = threading.Lock()
+        self.logLock = threading.Lock()
 
-# Setting Up Boot Time
-echo -e "                $GREEN Reboot Services$RESET"
-PS3='Choose Boot Time: '
-options=("5am" "Weekdays" "Monthly" "Quit")
-select opt in "${options[@]}"; do
-case "$opt,$REPLY" in
-5am,*|*,5am) 
-echo "";
-echo "0 5 * * * root /sbin/reboot" > /etc/cron.d/reboot
-echo "";
-echo -e "                $GREEN 1) Every 5:00 am Your VPS will reboot$RESET";
-break ;;
-Weekdays,*|*,Weekdays) 
-echo "";
-echo "0 4 * * 0 root /sbin/reboot" > /etc/cron.d/reboot
-echo "";
-echo -e "                $GREEN 2) Every 4:00 am Sunday Your VPS will reboot$RESET";
-break ;;
-Monthly,*|*,Monthly) 
-echo "";
-echo "0 0 1 * * root /sbin/reboot" > /etc/cron.d/reboot
-echo "";
-echo -e "                $GREEN 3) Every 12mn Next Month Your VPS will reboot$RESET";
-break ;;
-Quit,*|*,Quit)
-echo -e "                $RED   Installation Cancelled! $RESET";
-echo -e "                $RED   Rebuild your vps and correct the setup.$RESET";
-exit;
-break ;; *)
-echo -e "                $RED   Invalid: Just choose what you want$RESET";
-esac
-done
+    def run(self):
+        self.soc = socket.socket(socket.AF_INET)
+        self.soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.soc.settimeout(2)
+        self.soc.bind((self.host, self.port))
+        self.soc.listen(0)
+        self.running = True
 
-# tweaks
-echo '' > /etc/sysctl.conf &> /dev/null
-echo "#IPV4
-net.ipv4.ip_forward = 1
-net.ipv4.conf.default.rp_filter = 1
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.default.accept_source_route = 0
-net.ipv4.tcp_syncookies = 1
-net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_fin_timeout = 30
-net.ipv4.tcp_keepalive_time = 1200
-net.ipv4.ip_local_port_range = 10000 65000
-net.ipv4.tcp_max_syn_backlog = 8192
-net.ipv4.tcp_max_tw_buckets = 5000
-net.ipv4.tcp_mem = 25600 51200 102400
-net.ipv4.tcp_rmem = 4096 87380 67108864
-net.ipv4.tcp_wmem = 4096 65536 67108864
-net.ipv4.tcp_mtu_probing = 1
+        try:
+            while self.running:
+                try:
+                    c, addr = self.soc.accept()
+                    c.setblocking(1)
+                except socket.timeout:
+                    continue
 
-#Net Core
-net.core.rmem_default = 10000000
-net.core.wmem_default = 10000000
-net.core.rmem_max = 67108864
-net.core.wmem_max = 67108864
-net.core.netdev_max_backlog = 250000
-net.core.somaxconn = 4096
+                conn = ConnectionHandler(c, self, addr)
+                conn.start()
+                self.addConn(conn)
+        finally:
+            self.running = False
+            self.soc.close()
 
-#Kernel
-kernel.sysrq = 0
-kernel.core_uses_pid = 1
-kernel.msgmnb = 65536
-kernel.msgmax = 65536
-kernel.shmmax = 68719476736
-kernel.shmall = 4294967296
-fs.file-max = 51200
+    def printLog(self, log):
+        self.logLock.acquire()
+        print log
+        self.logLock.release()
 
-net.ipv4.tcp_tw_recycle = 0
-#net.ipv4.tcp_fastopen = 3
-net.ipv4.tcp_congestion_control = hybla
+    def addConn(self, conn):
+        try:
+            self.threadsLock.acquire()
+            if self.running:
+                self.threads.append(conn)
+        finally:
+            self.threadsLock.release()
 
-#IPV6
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1"| sudo tee /etc/sysctl.conf
+    def removeConn(self, conn):
+        try:
+            self.threadsLock.acquire()
+            self.threads.remove(conn)
+        finally:
+            self.threadsLock.release()
 
-sysctl -p
+    def close(self):
+        try:
+            self.running = False
+            self.threadsLock.acquire()
 
-echo ""
-echo ""
-echo ""
-echo "            Ethernet Type"
-ip route | grep default
-eth=""
+            threads = list(self.threads)
+            for c in threads:
+                c.close()
+        finally:
+            self.threadsLock.release()
 
-echo ""
-echo "Ethernet:"
-read eth
+
+class ConnectionHandler(threading.Thread):
+    def __init__(self, socClient, server, addr):
+        threading.Thread.__init__(self)
+        self.clientClosed = False
+        self.targetClosed = True
+        self.client = socClient
+        self.client_buffer = ''
+        self.server = server
+        self.log = 'Connection: ' + str(addr)
+
+    def close(self):
+        try:
+            if not self.clientClosed:
+                self.client.shutdown(socket.SHUT_RDWR)
+                self.client.close()
+        except:
+            pass
+        finally:
+            self.clientClosed = True
+
+        try:
+            if not self.targetClosed:
+                self.target.shutdown(socket.SHUT_RDWR)
+                self.target.close()
+        except:
+            pass
+        finally:
+            self.targetClosed = True
+
+    def run(self):
+        try:
+            self.client_buffer = self.client.recv(BUFLEN)
+
+            hostPort = self.findHeader(self.client_buffer, 'X-Real-Host')
+
+            if hostPort == '':
+                hostPort = DEFAULT_HOST
+
+            split = self.findHeader(self.client_buffer, 'X-Split')
+
+            if split != '':
+                self.client.recv(BUFLEN)
+
+            if hostPort != '':
+                passwd = self.findHeader(self.client_buffer, 'X-Pass')
+				
+                if len(PASS) != 0 and passwd == PASS:
+                    self.method_CONNECT(hostPort)
+                elif len(PASS) != 0 and passwd != PASS:
+                    self.client.send('HTTP/1.1 400 WrongPass!\r\n\r\n')
+                elif hostPort.startswith('127.0.0.1') or hostPort.startswith('localhost'):
+                    self.method_CONNECT(hostPort)
+                else:
+                    self.client.send('HTTP/1.1 403 Forbidden!\r\n\r\n')
+            else:
+                print '- No X-Real-Host!'
+                self.client.send('HTTP/1.1 400 NoXRealHost!\r\n\r\n')
+
+        except Exception as e:
+            self.log += ' - error: ' + e.strerror
+            self.server.printLog(self.log)
+	    pass
+        finally:
+            self.close()
+            self.server.removeConn(self)
+
+    def findHeader(self, head, header):
+        aux = head.find(header + ': ')
+
+        if aux == -1:
+            return ''
+
+        aux = head.find(':', aux)
+        head = head[aux+2:]
+        aux = head.find('\r\n')
+
+        if aux == -1:
+            return ''
+
+        return head[:aux];
+
+    def connect_target(self, host):
+        i = host.find(':')
+        if i != -1:
+            port = int(host[i+1:])
+            host = host[:i]
+        else:
+            if self.method=='CONNECT':
+                port = 443
+            else:
+                port = 80
+                port = 8080
+                port = 8799
+                port = 3128
+
+        (soc_family, soc_type, proto, _, address) = socket.getaddrinfo(host, port)[0]
+
+        self.target = socket.socket(soc_family, soc_type, proto)
+        self.targetClosed = False
+        self.target.connect(address)
+
+    def method_CONNECT(self, path):
+        self.log += ' - CONNECT ' + path
+
+        self.connect_target(path)
+        self.client.sendall(RESPONSE)
+        self.client_buffer = ''
+
+        self.server.printLog(self.log)
+        self.doCONNECT()
+
+    def doCONNECT(self):
+        socs = [self.client, self.target]
+        count = 0
+        error = False
+        while True:
+            count += 1
+            (recv, _, err) = select.select(socs, [], socs, 3)
+            if err:
+                error = True
+            if recv:
+                for in_ in recv:
+		    try:
+                        data = in_.recv(BUFLEN)
+                        if data:
+			    if in_ is self.target:
+				self.client.send(data)
+                            else:
+                                while data:
+                                    byte = self.target.send(data)
+                                    data = data[byte:]
+
+                            count = 0
+			else:
+			    break
+		    except:
+                        error = True
+                        break
+            if count == TIMEOUT:
+                error = True
+
+            if error:
+                break
+
+
+def print_usage():
+    print 'Usage: proxy.py -p <port>'
+    print '       proxy.py -b <bindAddr> -p <port>'
+    print '       proxy.py -b 0.0.0.0 -p 80'
+
+def parse_args(argv):
+    global LISTENING_ADDR
+    global LISTENING_PORT
+
+    try:
+        opts, args = getopt.getopt(argv,"hb:p:",["bind=","port="])
+    except getopt.GetoptError:
+        print_usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print_usage()
+            sys.exit()
+        elif opt in ("-b", "--bind"):
+            LISTENING_ADDR = arg
+        elif opt in ("-p", "--port"):
+            LISTENING_PORT = int(arg)
+
+
+def main(host=LISTENING_ADDR, port=LISTENING_PORT):
+
+    print "\n:-------PythonProxy-------:\n"
+    print "Listening addr: " + LISTENING_ADDR
+    print "Listening port: " + str(LISTENING_PORT) + "\n"
+    print ":-------------------------:\n"
+
+    server = Server(LISTENING_ADDR, LISTENING_PORT)
+    server.start()
+
+    while True:
+        try:
+            time.sleep(2)
+        except KeyboardInterrupt:
+            print 'Stopping...'
+            server.close()
+            break
+
+if __name__ == '__main__':
+    parse_args(sys.argv[1:])
+    main()
+EOM
+chmod +x /usr/local/sbin/socks.py
+screen -dmS socks python /usr/local/sbin/socks.py
+
+cat << XYZZY > /etc/systemd/system/rc-local.service
+[Unit]
+ Description=/etc/rc.local Compatibility
+ ConditionPathExists=/etc/rc.local
+
+[Service]
+ Type=forking
+ ExecStart=/bin/bash /etc/rc.local
+ TimeoutSec=0
+ StandardOutput=tty
+ RemainAfterExit=yes
+ SysVStartPriority=99
+
+[Install]
+ WantedBy=multi-user.target
+XYZZY
+chmod +x /etc/systemd/system/rc-local.service
 
 
 echo '' > /etc/iptables.up.rules
 echo "#
-*nat
-:PREROUTING ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
--A POSTROUTING -o $eth -j MASQUERADE
--A POSTROUTING -o tun0 -j MASQUERADE
--A POSTROUTING -s 10.20.0.0/24 -o $eth -j MASQUERADE
-COMMIT
-
 *filter
 :INPUT ACCEPT [0:0]
 :FORWARD ACCEPT [0:0]
@@ -537,22 +326,9 @@ COMMIT
 -A FORWARD -i $eth -o tun0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A FORWARD -i tun0 -o $eth -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 53 -j ACCEPT
--A INPUT -p tcp --dport 22  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 143  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 144  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 442  -m state --state NEW -j ACCEPT
 -A INPUT -p tcp --dport 443  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 444  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 445  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 110  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 1147  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8443  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8444  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 1194  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 3128  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8080  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8888  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 8118  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 143  -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 80  -m state --state NEW -j ACCEPT
 COMMIT
 
 *raw
@@ -570,43 +346,131 @@ COMMIT
 
 "| sudo tee /etc/iptables.up.rules
 
-echo '' > /etc/rc.local
-echo "#!/bin/sh
-/sbin/ifconfig $eth txqueuelen 10000
-iptables-restore < /etc/iptables.up.rules
+
+
+cat << EOF >/etc/rc.local
+#!/bin/sh -e
+/sbin/sysctl -p
+sysctl -p
 echo 1 > /proc/sys/net/ipv4/ip_forward
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 echo "nameserver 1.0.0.1" >> /etc/resolv.conf
-screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300
-
-exit 0"| sudo tee /etc/rc.local
+screen -dmS socks python /usr/local/sbin/socks.py
+exit 0
+EOF
 chmod +x /etc/rc.local
-/etc/rc.local
+systemctl enable rc-local
+systemctl start rc-local.service
 
-# Restart Services
-systemctl restart rc-local.service
-systemctl enable rc-local.service
+# install dropbear
+apt-get -y install dropbear
+sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=143/g' /etc/default/dropbear
+#sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 222"/g' /etc/default/dropbear
+echo "/bin/false" >> /etc/shells
 service ssh restart
 service dropbear restart
-systemctl enable dropbear
-service fail2ban restart
-systemctl enable fail2ban
-service stunnel4 restart
+
+#Installing Stunnel
+apt-get -y install stunnel4
+cat <<EOF >/etc/stunnel/stunnel.pem
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEA+A7kkUwhEiVc3V2vQMCnkXxhU/U9eXVgcyMBLDjZ5tcYP41I
+wfhrNH3kNIGLc/C1w9eM13hX7lxaZlInMb4ZWfDOy8/WLNC4XdT/74ucGqtlNDvu
+bCL617hr0NyLkf9KRxQlaa/Mc7qu18sMyX+AUJsKLrigxXQC3XQ7S/i3YfGBU6x1
+V9G+aXq2t3z/dAQK6mcUj/5YArEBc1YpdJpEkSXyMfWZByjE5QlBeHfe/eGnxOoV
+3VLFObil/FdwsK/F4hAW4SWSLAf3KY8IjiicRgXk3Vcm5eQAftsluuNdMFNR+0wp
+z1jHl7G6mTwTXyAuB1lvyRPO8iSyueAwRfAgTwIDAQABAoIBAQC14oWqHD4rhgXf
+su/r9Ndpj9/1pd6bjntYMRSNDmqIHrOC9d+hirtg0+ZesZZFPvyoSwbUf0NKXaFT
+YW2nxZHlJvMa8pxCZBCrjKDVTnL6Ay7D7CXYWJXBU1KK5QvZ02ztTVJZejPZr8rA
+I/yOStUVRXlj5LDN11C6fJ12CTq9rtvtMS792ZNtCxGvQJuV5OQEhukp2ycjwU3P
+RHErEC7Gkhdo7netjwOmBvysikPmtheE8IZOpx/yok+pRB1zrzWExAM7nZHNQsR4
+jF1xJiaQ4/9a7PGNvbHOj8YarbWxGPHzrWYvrzz4P8ZwgWnv5gdOWsBJTG+sUNJ2
+n5dCXlIBAoGBAPzWxrs7ACW8ZUwqvKyhTjAAmpMz6I/VQNbtM/TEKCUpMaXXCSar
+ItnmSXwt29c0LSoHifwlBenUx+QB/o5qr2idbbJRbU1Pz4PcIRCdKcu0t4PoeJJM
+T6CzXNs46Sg98HZ46WW0HesI8UNbwa8vj8B92O9Z5CoFOStYb4cRxFbPAoGBAPso
+0Lx+ZCqA3+++BFaqsFjdh8YL3UOjm1oSn/ip1Stgv0Jl862RQA3aB5nNMutuPBIc
+gAlb1M66J7v7STe5nKFPHELUprwHReXlrjSkyNxmP2LkCJFpGBm1AOc5meL0avXH
+yzmqEdOvXKC06D0eZlBtLnfITwRgcjMoiHxF8f6BAoGAeuA+ULvJxI0chbm3XAZA
+o1+Hv8ZYXZ58FnfM6kVyZSzx7fDlh59gHpmmWO1Ii/vVfzmOu7WafBtm0c6OUdRT
+TvpDV4fvIMWKykBu6U4YA+Hd1gNipWbkw+qnU/sChQYlGM6GT2ELsS/1YJD1PhhV
+Om1uwlPjaPCE6iXefbwKuU0CgYEA4274ZlhFuD9viZeWMizq9+3TT0HbIa77tLr8
+5Z5VDKzVRPkxilDnoiN3kozAuXTfLL9mKhNgR7tG0/EfQjjwXxpWSyZpvgcQArjT
+4ZP+16Y3bAN2xsZWLqE7qib89QnD+cDshNE+x2QbCuQHEaF/oQDdfVaER0BW6YCg
+53gnRQECgYEA0CbUEO4JPIN6djkwX8a1GbEow85DMKvEchmwCdW8CvUunlULzZlS
+ezC6w+/xCAP2jU6qOPR0aQV11oxnX4BimvZHCTuqDokHdS38KWcPjHy/A/XHU2dl
+OpQXVN1JwM0kcBY8IaTS22CRm1wGTytVX72QwyayrqVsjd2N6yHQSxk=
+-----END RSA PRIVATE KEY-----
+-----BEGIN CERTIFICATE-----
+MIID0TCCArmgAwIBAgIJALf1kKi2R1g3MA0GCSqGSIb3DQEBCwUAMH8xCzAJBgNV
+BAYTAlBIMQswCQYDVQQIDAJRQzELMAkGA1UEBwwCUUMxDzANBgNVBAoMBkNRS1ZQ
+TjEUMBIGA1UECwwLY3FrLXZwbi5jb20xEDAOBgNVBAMMB3hELWNSaXoxHTAbBgkq
+hkiG9w0BCQEWDmNyaXpAZ21haWwuY29tMB4XDTE4MDcwMjE3MDMxOFoXDTIxMDcw
+MTE3MDMxOFowfzELMAkGA1UEBhMCUEgxCzAJBgNVBAgMAlFDMQswCQYDVQQHDAJR
+QzEPMA0GA1UECgwGQ1FLVlBOMRQwEgYDVQQLDAtjcWstdnBuLmNvbTEQMA4GA1UE
+AwwHeEQtY1JpejEdMBsGCSqGSIb3DQEJARYOY3JpekBnbWFpbC5jb20wggEiMA0G
+CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD4DuSRTCESJVzdXa9AwKeRfGFT9T15
+dWBzIwEsONnm1xg/jUjB+Gs0feQ0gYtz8LXD14zXeFfuXFpmUicxvhlZ8M7Lz9Ys
+0Lhd1P/vi5waq2U0O+5sIvrXuGvQ3IuR/0pHFCVpr8xzuq7XywzJf4BQmwouuKDF
+dALddDtL+Ldh8YFTrHVX0b5pera3fP90BArqZxSP/lgCsQFzVil0mkSRJfIx9ZkH
+KMTlCUF4d9794afE6hXdUsU5uKX8V3Cwr8XiEBbhJZIsB/cpjwiOKJxGBeTdVybl
+5AB+2yW6410wU1H7TCnPWMeXsbqZPBNfIC4HWW/JE87yJLK54DBF8CBPAgMBAAGj
+UDBOMB0GA1UdDgQWBBRuC0gqbi8q0u1gRWkD4M6JOXfDMDAfBgNVHSMEGDAWgBRu
+C0gqbi8q0u1gRWkD4M6JOXfDMDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUA
+A4IBAQBJ5uuyTBaCmXu5BDwvHWfn/BoRMLghdaoT5OkWNHlQ6XXriKOLvMrK1bnT
+qU5JEiCF1vtJMjlG9okzFkgHdVzk7BgmwvFZXjCI1l8GhJiOMvqPweAiFYaV4Ny1
+kIEocMeLLeX6MYTclHRQSeHWktE5tt0wPb25+jdd5Cf5Ikmzh1JLE2zKnZ8aRi5+
+2p6D24FM7cYLkJUi5GJfWbMKy2kb5hgj89f9TSLa/SUUwxrktnIsntg7Mpj65SBc
+qNRdgDhp7yhds2mQrFP+5yFpnE1Crw3YTBOr/4Oora6jYAG3gFDn6pwHK6SM1Iy0
+xdnSR8pYhuw1OjnZhg6QV2lk68dM
+-----END CERTIFICATE-----
+EOF
+
+
+cat <<EOF >/etc/stunnel/stunnel.conf
+cert = /etc/stunnel/stunnel.pem
+client = no
+socket = a:SO_REUSEADDR=1
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+[sts]
+connect = 127.0.0.1:143
+accept = 443
+EOF
+
+cd /etc/default && rm stunnel4
+cat <<EOF >stunnel4
+echo 'ENABLED=1
+FILES="/etc/stunnel/*.conf"
+OPTIONS=""
+PPP_RESTART=0
+RLIMITS=""'
+EOF
+
+chmod 755 stunnel4
+update-rc.d stunnel4 defaults
 systemctl enable stunnel4
-systemctl restart apache2
-systemctl enable apache2
-systemctl openvpn restart
-systemctl enable openvpn
+systemctl restart stunnel4
+
+cd
+chmod 600 /etc/stunnel/stunnel.pem
+echo "/sbin/nologin" >> /etc/shells
+printf "\nAllowUsers root" >> /etc/ssh/sshd_config
+echo "0 4 * * * root /sbin/reboot" > /etc/cron.d/reboot
+useradd $USER
+echo "$USER:$PASS" | chpasswd
 
 
+clear
+netstat -tunlp
 
-
-
-
-
-
-
+sleep 3s
+rm -rf *.sh &> /dev/null
+cat /dev/null > ~/.bash_history && history -c && history -w
+  echo "Server will secure this server and reboot after 20 seconds"
+  sleep 20
+  /sbin/reboot
 
 
 
