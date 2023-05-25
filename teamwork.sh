@@ -3,7 +3,7 @@
 # Version: 2023
 
 # install wget and curl
-apt-get update; apt-get -y install wget curl;
+apt-get install alien; apt-get -y install wget curl;
 apt-get install net-tools screen python -y
 
 # set time GMT +7
