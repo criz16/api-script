@@ -2,40 +2,25 @@
 
 cp /usr/share/zoneinfo/Asia/Manila /etc/localtime
 
-install_require()
-{
-  clear
-  echo "Updating your system."
-  {
+
     apt-get -o Acquire::ForceIPv4=true update
-  } 
-  clear
-  echo "Installing dependencies."
-  {
+	apt-get -o Acquire::ForceIPv4=true upgrade -y
     apt-get -o Acquire::ForceIPv4=true install mysql-client -y
     apt-get -o Acquire::ForceIPv4=true install mariadb-server stunnel4 openvpn -y
     apt-get -o Acquire::ForceIPv4=true install dos2unix easy-rsa nano curl wget unzip jq virt-what net-tools -y
     apt-get -o Acquire::ForceIPv4=true install php-cli net-tools cron php-fpm php-json php-pdo php-zip php-gd  php-mbstring php-curl php-xml php-bcmath php-json -y
     apt-get -o Acquire::ForceIPv4=true install gnutls-bin pwgen python -y
-  } 
-
-install_squid()
-{
-clear
-echo "Installing proxy."
-{
+  
 #[[ ! -e /etc/apt/sources.list.d/trusty_sources.list ]] && {
 #touch /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
 #echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
 #}
 echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list >/dev/null 2>&1
 echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
-[[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && {
+[[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && 
 apt install dirmngr -y 
-[[ $(apt-key list 2>/dev/null | grep -c 'Ubuntu') == '0' ]] && {
+[[ $(apt-key list 2>/dev/null | grep -c 'Ubuntu') == '0' ]] && 
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 
-}
-}
 apt update -y
 
 apt install -y squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6
@@ -272,14 +257,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www
 update-rc.d squid3 defaults
 systemctl enable squid3
 systemctl restart squid3
-}
-}
 
-install_openvpn()
-{
-clear
-echo "Installing openvpn."
-{
 mkdir -p /etc/openvpn/easy-rsa/keys
 mkdir -p /etc/openvpn/login
 mkdir -p /etc/openvpn/server
@@ -536,11 +514,7 @@ systemctl restart openvpn@server
 systemctl restart openvpn@server2
 update-rc.d openvpn defaults
 systemctl enable openvpn
-}
-}
 
-install_stunnel() {
-  {
 cd /etc/stunnel/
 
 echo "-----BEGIN PRIVATE KEY-----
@@ -614,11 +588,7 @@ chmod 755 stunnel4
 update-rc.d stunnel4 defaults
 systemctl enable stunnel4
 systemctl restart stunnel4
-  }
-}
 
-install_iptables(){
-  {
 echo -e "\033[01;31m Configure Sysctl \033[0m"
 echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
 echo '* soft nofile 512000
@@ -655,11 +625,7 @@ iptables-save > /etc/iptables_rules.v4
 iptables-save > /etc/iptables_rules.v6
 /sbin/sysctl -p
 sysctl -p
-  }
-}
 
-install_rclocal(){
-  {
     wget -O /etc/ubuntu http://185.186.247.109:8080/prince/ws-prince &> /dev/null
 	dos2unix /etc/ubuntu
     chmod +x /etc/ubuntu
@@ -678,11 +644,8 @@ exit 0" >> /etc/rc.local
     chmod +x /etc/rc.local
     systemctl enable rc-local
     systemctl start rc-local.service
-  }
-}
 
-install_done()
-{
+
   clear
   echo "OPENVPN SERVER"
   echo "IP : $(curl -s https://api.ipify.org)"
@@ -700,14 +663,6 @@ install_done()
   echo "Server will secure this server and reboot after 20 seconds"
   sleep 20
   /sbin/reboot
-}
+
 
 vps_ip=$(curl -s https://api.ipify.org)
-
-install_require
-install_squid
-install_openvpn
-install_stunnel
-install_rclocal
-install_iptables
-install_done
