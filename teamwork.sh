@@ -8,7 +8,7 @@ install_require()
   echo "Updating your system."
   {
     apt-get -o Acquire::ForceIPv4=true update
-  } 
+  } &>/dev/null
   clear
   echo "Installing dependencies."
   {
@@ -17,7 +17,8 @@ install_require()
     apt-get -o Acquire::ForceIPv4=true install dos2unix easy-rsa nano curl wget unzip jq virt-what net-tools -y
     apt-get -o Acquire::ForceIPv4=true install php-cli net-tools cron php-fpm php-json php-pdo php-zip php-gd  php-mbstring php-curl php-xml php-bcmath php-json -y
     apt-get -o Acquire::ForceIPv4=true install gnutls-bin pwgen python -y
-  } 
+  } &>/dev/null
+}
 
 install_squid()
 {
@@ -31,9 +32,9 @@ echo "Installing proxy."
 echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list >/dev/null 2>&1
 echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
 [[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && {
-apt install dirmngr -y 
+apt install dirmngr -y >/dev/null 2>&1
 [[ $(apt-key list 2>/dev/null | grep -c 'Ubuntu') == '0' ]] && {
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 >/dev/null 2>&1
 }
 }
 apt update -y
@@ -272,7 +273,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www
 update-rc.d squid3 defaults
 systemctl enable squid3
 systemctl restart squid3
-}
+} &>/dev/null
 }
 
 install_openvpn()
@@ -371,10 +372,16 @@ verb 3' > /etc/openvpn/server2.conf
 
 cat <<\EOM >/etc/openvpn/login/config.sh
 #!/bin/bash
+#HOST='51.89.242.84'
+#USER='vpnskyzo_teamwork'
+#PASS='jYWJ9l9nb9yp'
+#DB='vpnskyzo_teamwork'
+#
 HOST='143.42.31.35'
 USER='admin_teamwork'
 PASS='jYWJ9l9nb9yp'
 DB='admin_teamwork'
+#
 EOM
 
 /bin/cat <<"EOM" >/etc/openvpn/login/auth_vpn
@@ -536,7 +543,7 @@ systemctl restart openvpn@server
 systemctl restart openvpn@server2
 update-rc.d openvpn defaults
 systemctl enable openvpn
-}
+}&>/dev/null
 }
 
 install_stunnel() {
@@ -614,7 +621,7 @@ chmod 755 stunnel4
 update-rc.d stunnel4 defaults
 systemctl enable stunnel4
 systemctl restart stunnel4
-  }
+  } &>/dev/null
 }
 
 install_iptables(){
@@ -655,7 +662,7 @@ iptables-save > /etc/iptables_rules.v4
 iptables-save > /etc/iptables_rules.v6
 /sbin/sysctl -p
 sysctl -p
-  }
+  }&>/dev/null
 }
 
 install_rclocal(){
@@ -678,7 +685,7 @@ exit 0" >> /etc/rc.local
     chmod +x /etc/rc.local
     systemctl enable rc-local
     systemctl start rc-local.service
-  }
+  }&>/dev/null
 }
 
 install_done()
