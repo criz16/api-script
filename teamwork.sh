@@ -316,44 +316,10 @@ XYZZY
 chmod +x /etc/systemd/system/rc-local.service
 
 
-echo '' > /etc/iptables.up.rules
-echo "#
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:fail2ban-ssh - [0:0]
--A FORWARD -i $eth -o tun0 -m state --state RELATED,ESTABLISHED -j ACCEPT
--A FORWARD -i tun0 -o $eth -j ACCEPT
--A INPUT -p tcp -m tcp --dport 53 -j ACCEPT
--A INPUT -p tcp --dport 443  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 143  -m state --state NEW -j ACCEPT
--A INPUT -p tcp --dport 80  -m state --state NEW -j ACCEPT
-COMMIT
-
-*raw
-:PREROUTING ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-COMMIT
-
-*mangle
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
-COMMIT
-
-"| sudo tee /etc/iptables.up.rules
-
-
-
 cat << EOF >/etc/rc.local
 #!/bin/sh -e
 /sbin/sysctl -p
 sysctl -p
-echo 1 > /proc/sys/net/ipv4/ip_forward
-echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 echo "nameserver 1.0.0.1" >> /etc/resolv.conf
 screen -dmS socks python /usr/local/sbin/socks.py
